@@ -550,7 +550,12 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			let external_lib_dir = lib_dir.join("external");
 			println!("cargo:rustc-link-search=native={}", lib_dir.display());
 			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("protobuf").join("cmake").display());
-			println!("cargo:rustc-link-lib=static=protobuf-lited");
+
+			match env::var("PROFILE").unwrap().as_ref() {
+				"debug" => println!("cargo:rustc-link-lib=static=protobuf-lited"),
+				"release" => println!("cargo:rustc-link-lib=static=protobuf-lite"),
+				_ => panic!("unknown profile"),
+			}
 
 			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx").display());
 			println!("cargo:rustc-link-lib=static=onnx");
