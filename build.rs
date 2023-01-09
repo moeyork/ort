@@ -6,7 +6,7 @@ use std::{
 	io::{self, Read, Write},
 	path::{Path, PathBuf},
 	process::Stdio,
-	str::FromStr
+	str::FromStr,
 };
 
 const ORT_VERSION: &str = "1.13.1";
@@ -44,7 +44,7 @@ enum Architecture {
 	X86,
 	X86_64,
 	Arm,
-	Arm64
+	Arm64,
 }
 
 impl FromStr for Architecture {
@@ -56,7 +56,7 @@ impl FromStr for Architecture {
 			"x86_64" => Ok(Architecture::X86_64),
 			"arm" => Ok(Architecture::Arm),
 			"aarch64" => Ok(Architecture::Arm64),
-			_ => Err(format!("Unsupported architecture: {s}"))
+			_ => Err(format!("Unsupported architecture: {s}")),
 		}
 	}
 }
@@ -67,7 +67,7 @@ impl OnnxPrebuiltArchive for Architecture {
 			Architecture::X86 => "x86".into(),
 			Architecture::X86_64 => "x64".into(),
 			Architecture::Arm => "arm".into(),
-			Architecture::Arm64 => "arm64".into()
+			Architecture::Arm64 => "arm64".into(),
 		}
 	}
 }
@@ -77,7 +77,7 @@ impl OnnxPrebuiltArchive for Architecture {
 enum Os {
 	Windows,
 	Linux,
-	MacOS
+	MacOS,
 }
 
 impl Os {
@@ -85,7 +85,7 @@ impl Os {
 		match self {
 			Os::Windows => "zip",
 			Os::Linux => "tgz",
-			Os::MacOS => "tgz"
+			Os::MacOS => "tgz",
 		}
 	}
 }
@@ -98,7 +98,7 @@ impl FromStr for Os {
 			"windows" => Ok(Os::Windows),
 			"linux" => Ok(Os::Linux),
 			"macos" => Ok(Os::MacOS),
-			_ => Err(format!("Unsupported OS: {s}"))
+			_ => Err(format!("Unsupported OS: {s}")),
 		}
 	}
 }
@@ -108,7 +108,7 @@ impl OnnxPrebuiltArchive for Os {
 		match self {
 			Os::Windows => "win".into(),
 			Os::Linux => "linux".into(),
-			Os::MacOS => "osx".into()
+			Os::MacOS => "osx".into(),
 		}
 	}
 }
@@ -116,14 +116,14 @@ impl OnnxPrebuiltArchive for Os {
 #[derive(Debug)]
 enum Accelerator {
 	None,
-	Gpu
+	Gpu,
 }
 
 impl OnnxPrebuiltArchive for Accelerator {
 	fn as_onnx_str(&self) -> Cow<str> {
 		match self {
 			Accelerator::None => "unaccelerated".into(),
-			Accelerator::Gpu => "gpu".into()
+			Accelerator::Gpu => "gpu".into(),
 		}
 	}
 }
@@ -132,7 +132,7 @@ impl OnnxPrebuiltArchive for Accelerator {
 struct Triplet {
 	os: Os,
 	arch: Architecture,
-	accelerator: Accelerator
+	accelerator: Accelerator,
 }
 
 impl OnnxPrebuiltArchive for Triplet {
@@ -156,7 +156,7 @@ impl OnnxPrebuiltArchive for Triplet {
 				self.os.as_onnx_str(),
 				self.arch.as_onnx_str(),
 				self.accelerator.as_onnx_str()
-			)
+			),
 		}
 	}
 }
@@ -171,7 +171,7 @@ fn prebuilt_onnx_url() -> (PathBuf, String) {
 	let triplet = Triplet {
 		os: env::var("CARGO_CFG_TARGET_OS").expect("unable to get target OS").parse().unwrap(),
 		arch: env::var("CARGO_CFG_TARGET_ARCH").expect("unable to get target arch").parse().unwrap(),
-		accelerator
+		accelerator,
 	};
 
 	let prebuilt_archive = format!("onnxruntime-{}-{}.{}", triplet.as_onnx_str(), ORT_VERSION, triplet.os.archive_extension());
@@ -206,7 +206,7 @@ fn prebuilt_protoc_url() -> (PathBuf, String) {
 
 fn download<P>(source_url: &str, target_file: P)
 where
-	P: AsRef<Path>
+	P: AsRef<Path>,
 {
 	let resp = ureq::get(source_url)
 		.timeout(std::time::Duration::from_secs(300))
@@ -231,7 +231,7 @@ fn extract_archive(filename: &Path, output: &Path) {
 		Some(Some("zip")) => extract_zip(filename, output),
 		#[cfg(not(target_os = "windows"))]
 		Some(Some("tgz")) => extract_tgz(filename, output),
-		_ => unimplemented!()
+		_ => unimplemented!(),
 	}
 }
 
@@ -371,15 +371,20 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 
 			let cmake = env::var(ORT_ENV_CMAKE_PROGRAM).unwrap_or_else(|_| "cmake".to_string());
 			let python = env::var(ORT_ENV_PYTHON_PROGRAM).unwrap_or_else(|_| {
-				if Command::new("python").arg("--version").status().unwrap().success() {
-					"python".to_string()
+				if let Ok(status) = Command::new("python").arg("--version").status() {
+					if status.success() {
+						"python"
+					} else {
+						"python3"
+					}
 				} else {
-					"python3".to_string()
+					"python3"
 				}
+				.to_string()
 			});
 
 			let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-			let required_cmds: &[&str] = &[&cmake, "python", "git"];
+			let required_cmds: &[&str] = &[&cmake, &python, "git"];
 			for cmd in required_cmds {
 				if Command::new(cmd).output().is_err() {
 					panic!("[ort] compile strategy requires `{cmd}` to be installed");
@@ -399,7 +404,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 					"--shallow-submodules",
 					"--recursive",
 					ORT_GIT_REPO,
-					ORT_GIT_DIR
+					ORT_GIT_DIR,
 				])
 				.current_dir(&out_dir)
 				.stdout(Stdio::null())
@@ -407,23 +412,28 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 				.status()
 				.expect("failed to clone ORT repo");
 
-			// download prebuilt protoc binary
-			let (protoc_archive, protoc_url) = prebuilt_protoc_url();
-			let protoc_dir = out_dir.join(PROTOBUF_EXTRACT_DIR);
-			let protoc_archive_file = out_dir.join(protoc_archive);
+			let protoc_binary = if cfg!(target_os = "windows") { "protoc.exe" } else { "protoc" };
+			let protoc_file = if Command::new(protoc_binary).output().is_err() {
+				// download prebuilt protoc binary
+				let (protoc_archive, protoc_url) = prebuilt_protoc_url();
+				let protoc_dir = out_dir.join(PROTOBUF_EXTRACT_DIR);
+				let protoc_archive_file = out_dir.join(protoc_archive);
 
-			println!("cargo:rerun-if-changed={}", protoc_archive_file.display());
+				println!("cargo:rerun-if-changed={}", protoc_archive_file.display());
 
-			if !protoc_archive_file.exists() {
-				download(&protoc_url, &protoc_archive_file);
-			}
+				if !protoc_archive_file.exists() {
+					download(&protoc_url, &protoc_archive_file);
+				}
 
-			if !protoc_dir.exists() {
-				extract_archive(&protoc_archive_file, &protoc_dir);
-			}
+				if !protoc_dir.exists() {
+					extract_archive(&protoc_archive_file, &protoc_dir);
+				}
 
-			let protoc_file = if cfg!(target_os = "windows") { "protoc.exe" } else { "protoc" };
-			let protoc_file = protoc_dir.join("bin").join(protoc_file);
+				let protoc_file = if cfg!(target_os = "windows") { "protoc.exe" } else { "protoc" };
+				protoc_dir.join("bin").join(protoc_file)
+			} else {
+				protoc_binary.into()
+			};
 
 			Command::new(protoc_file)
 				.args(["--help"])
@@ -442,7 +452,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 					root.join("toolchains").join("default-x86_64-w64-mingw32.cmake")
 				} else {
 					PathBuf::new()
-				}
+				},
 			);
 
 			if cfg!(target_os = "linux") && target.contains("windows") && target.contains("aarch64") {
@@ -477,7 +487,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 				build_args.push("--disable_memleak_checker");
 			}
 
-			if !cfg!(feature = "compile-static") {
+			if cfg!(feature = "compile-static") {
 				build_args.push("--build_shared_lib");
 			} else {
 				build_args.push("--enable_msvc_static_runtime");
@@ -486,8 +496,8 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			// onnxruntime will still build tests when --skip_tests is enabled, this filters out most of them
 			// this "fixes" compilation on alpine: https://github.com/microsoft/onnxruntime/issues/9155
 			// but causes other compilation errors: https://github.com/microsoft/onnxruntime/issues/7571
-			build_args.push("--cmake_extra_defines");
-			build_args.push("onnxruntime_BUILD_UNIT_TESTS=0");
+			// build_args.push("--cmake_extra_defines");
+			// build_args.push("onnxruntime_BUILD_UNIT_TESTS=0");
 
 			// if we can use ninja on windows, great! let's use it!
 			// note that ninja + clang on windows is a total shitstorm so it's disabled for now
@@ -510,7 +520,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 							build_args.push("--cmake_generator=Visual Studio 17 2022");
 						}
 					}
-					Some(VsFindResult { vs_exe_path: None, .. }) | None => panic!("[ort] unable to find Visual Studio installation")
+					Some(VsFindResult { vs_exe_path: None, .. }) | None => panic!("[ort] unable to find Visual Studio installation"),
 				};
 			}
 
@@ -537,18 +547,38 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			}
 
 			// also need to link to onnx.lib and onnx_proto.lib
-			let external_lib_dir = lib_dir.parent().unwrap().join("external").join("onnx");
-			let external_lib_dir = if cfg!(target_os = "windows") { external_lib_dir.join(config) } else { external_lib_dir };
-			println!("cargo:rustc-link-search=native={}", external_lib_dir.display());
+			let external_lib_dir = lib_dir.join("external");
+			println!("cargo:rustc-link-search=native={}", lib_dir.display());
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("protobuf").join("cmake").display());
+			println!("cargo:rustc-link-lib=static=protobuf-lited");
+
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx").display());
 			println!("cargo:rustc-link-lib=static=onnx");
 			println!("cargo:rustc-link-lib=static=onnx_proto");
 
-			println!("cargo:rustc-link-lib=onnxruntime_providers_shared");
-			println!("cargo:rustc-link-search=native={}", lib_dir.display());
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("nsync").display());
+			println!("cargo:rustc-link-lib=static=nsync_cpp");
+
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("re2").display());
+			println!("cargo:rustc-link-lib=static=re2");
+
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil-cpp").join("absl").join("base").display());
+			println!("cargo:rustc-link-lib=static=absl_base");
+			println!("cargo:rustc-link-lib=static=absl_throw_delegate");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil-cpp").join("absl").join("hash").display());
+			println!("cargo:rustc-link-lib=static=absl_hash");
+			println!("cargo:rustc-link-lib=static=absl_low_level_hash");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil-cpp").join("absl").join("container").display());
+			println!("cargo:rustc-link-lib=static=absl_raw_hash_set");
+
+			if cfg!(target_os = "macos") {
+				println!("cargo:rustc-link-lib=framework=Foundation");
+			}
+			// println!("cargo:rustc-link-lib=onnxruntime_providers_shared");
 
 			(out_dir, false)
 		}
-		_ => panic!("[ort] unknown strategy: {} (valid options are `download` or `system`)", strategy.unwrap_or_else(|_| "unknown".to_string()))
+		_ => panic!("[ort] unknown strategy: {} (valid options are `download` or `system`)", strategy.unwrap_or_else(|_| "unknown".to_string())),
 	}
 }
 
@@ -562,7 +592,7 @@ fn generate_bindings(_include_dir: &Path) {
 fn generate_bindings(include_dir: &Path) {
 	let clang_args = &[
 		format!("-I{}", include_dir.display()),
-		format!("-I{}", include_dir.join("onnxruntime").join("core").join("session").display())
+		format!("-I{}", include_dir.join("onnxruntime").join("core").join("session").display()),
 	];
 
 	println!("cargo:rerun-if-changed=src/wrapper.h");
