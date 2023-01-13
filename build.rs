@@ -371,11 +371,11 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 
 			let cmake = env::var(ORT_ENV_CMAKE_PROGRAM).unwrap_or_else(|_| "cmake".to_string());
 			let python = env::var(ORT_ENV_PYTHON_PROGRAM).unwrap_or_else(|_| {
-				if let Ok(status) = Command::new("python").arg("--version").status() {
+				if let Ok(status) = Command::new("python3").arg("--version").status() {
 					if status.success() {
-						"python"
-					} else {
 						"python3"
+					} else {
+						"python"
 					}
 				} else {
 					"python3"
