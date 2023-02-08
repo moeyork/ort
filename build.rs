@@ -467,13 +467,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 
 			// note: --parallel will probably break something... parallel build *while* doing another parallel build (cargo)?
 			let mut build_args = vec!["tools/ci_build/build.py", "--build", "--update", "--parallel", "--skip_tests", "--skip_submodule_sync"];
-			let config = if cfg!(debug_assertions) {
-				"Debug"
-			} else if cfg!(feature = "minimal-build") {
-				"MinSizeRel"
-			} else {
-				"Release"
-			};
+			let config = "Release";
 			build_args.push("--config");
 			build_args.push(config);
 
