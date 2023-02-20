@@ -374,7 +374,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 
 				let external_lib_dir = lib_dir.join("_deps");
 				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("protobuf-build").display());
-				println!("cargo:rustc-link-lib=static=protobuf-lited");
+				println!("cargo:rustc-link-lib=static=protobuf-lite");
 
 				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx-build").display());
 				println!("cargo:rustc-link-lib=static=onnx");
@@ -536,7 +536,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 
 			let external_lib_dir = lib_dir.join("external");
 			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("protobuf").join("cmake").display());
-			println!("cargo:rustc-link-lib=static=protobuf-lited");
+			println!("cargo:rustc-link-lib=static=protobuf-lite");
 
 			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx").display());
 			println!("cargo:rustc-link-lib=static=onnx");
