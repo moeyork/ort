@@ -310,8 +310,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 		incompatible_providers![coreml, vitis_ai, directml, winml];
 	}
 
-	println!("cargo:rerun-if-env-changed={}", ORT_ENV_STRATEGY);
-
 	match strategy.as_ref().map_or("compile", String::as_str) {
 		"download" => {
 			if target.contains("macos") {
@@ -537,41 +535,40 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			let external_lib_dir = lib_dir.join("_deps");
 			let protobuf_dir = external_lib_dir.join("protobuf").join("cmake");
 			if protobuf_dir.exists() {
-panic!("no");
+				panic!("no");
 				println!("cargo:rustc-link-search=native={}", protobuf_dir.display());
 				println!("cargo:rustc-link-lib=static=protobuf-lite");
 			} else {
 				println!("cargo:rustc-link-lib=protobuf-lite");
 			}
 
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx-build").display());
-				println!("cargo:rustc-link-lib=static=onnx");
-				println!("cargo:rustc-link-lib=static=onnx_proto");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("onnx-build").display());
+			println!("cargo:rustc-link-lib=static=onnx");
+			println!("cargo:rustc-link-lib=static=onnx_proto");
 
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("google_nsync-build").display());
-				println!("cargo:rustc-link-lib=static=nsync_cpp");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("google_nsync-build").display());
+			println!("cargo:rustc-link-lib=static=nsync_cpp");
 
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("pytorch_cpuinfo-build").display());
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("pytorch_cpuinfo-build").join("deps").join("clog").display());
-				println!("cargo:rustc-link-lib=static=cpuinfo");
-				println!("cargo:rustc-link-lib=static=clog");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("pytorch_cpuinfo-build").display());
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("pytorch_cpuinfo-build").join("deps").join("clog").display());
+			println!("cargo:rustc-link-lib=static=cpuinfo");
+			println!("cargo:rustc-link-lib=static=clog");
 
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("re2-build").display());
-				println!("cargo:rustc-link-lib=static=re2");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("re2-build").display());
+			println!("cargo:rustc-link-lib=static=re2");
 
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("base").display());
-				println!("cargo:rustc-link-lib=static=absl_base");
-				println!("cargo:rustc-link-lib=static=absl_throw_delegate");
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("hash").display());
-				println!("cargo:rustc-link-lib=static=absl_hash");
-				println!("cargo:rustc-link-lib=static=absl_low_level_hash");
-				println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("container").display());
-				println!("cargo:rustc-link-lib=static=absl_raw_hash_set");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("base").display());
+			println!("cargo:rustc-link-lib=static=absl_base");
+			println!("cargo:rustc-link-lib=static=absl_throw_delegate");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("hash").display());
+			println!("cargo:rustc-link-lib=static=absl_hash");
+			println!("cargo:rustc-link-lib=static=absl_low_level_hash");
+			println!("cargo:rustc-link-search=native={}", external_lib_dir.join("abseil_cpp-build").join("absl").join("container").display());
+			println!("cargo:rustc-link-lib=static=absl_raw_hash_set");
 
-				if cfg!(target_os = "macos") {
-					println!("cargo:rustc-link-lib=framework=Foundation");
-				}
-
+			if cfg!(target_os = "macos") {
+				println!("cargo:rustc-link-lib=framework=Foundation");
+			}
 
 			#[cfg(feature = "rocm")]
 			println!("cargo:rustc-link-lib=onnxruntime_providers_rocm");
@@ -614,7 +611,7 @@ fn generate_bindings(include_dir: &Path) {
 		.join(env::var("CARGO_CFG_TARGET_OS").unwrap())
 		.join(env::var("CARGO_CFG_TARGET_ARCH").unwrap())
 		.join("bindings.rs");
-	println!("cargo:rerun-if-changed={generated_file:?}");
+
 	fs::create_dir_all(generated_file.parent().unwrap()).unwrap();
 	bindings.write_to_file(&generated_file).expect("Couldn't write bindings!");
 }
@@ -630,9 +627,6 @@ fn main() {
 			println!("cargo:rustc-link-lib=onnxruntime");
 			println!("cargo:rustc-link-search=native={}", lib_dir.display());
 		}
-
-		println!("cargo:rerun-if-env-changed={}", ORT_ENV_STRATEGY);
-		println!("cargo:rerun-if-env-changed={}", ORT_ENV_SYSTEM_LIB_LOCATION);
 
 		#[cfg(feature = "generate-bindings")]
 		generate_bindings(&include_dir);
