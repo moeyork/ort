@@ -313,8 +313,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 		incompatible_providers![coreml, vitis_ai, directml, winml];
 	}
 
-	println!("cargo:rerun-if-env-changed={}", ORT_ENV_STRATEGY);
-
 	match strategy
 		.as_ref()
 		.map(String::as_str)
@@ -332,8 +330,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 			let extract_dir = out_dir.join(ORT_EXTRACT_DIR);
 			let downloaded_file = out_dir.join(&prebuilt_archive);
-
-			println!("cargo:rerun-if-changed={}", downloaded_file.display());
 
 			if !downloaded_file.exists() {
 				fs::create_dir_all(&out_dir).unwrap();
@@ -418,8 +414,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 				let (protoc_archive, protoc_url) = prebuilt_protoc_url();
 				let protoc_dir = out_dir.join(PROTOBUF_EXTRACT_DIR);
 				let protoc_archive_file = out_dir.join(protoc_archive);
-
-				println!("cargo:rerun-if-changed={}", protoc_archive_file.display());
 
 				if !protoc_archive_file.exists() {
 					download(&protoc_url, &protoc_archive_file);
@@ -589,8 +583,6 @@ fn generate_bindings(include_dir: &Path) {
 		format!("-I{}", include_dir.join("onnxruntime").join("core").join("session").display()),
 	];
 
-	println!("cargo:rerun-if-changed=src/wrapper.h");
-
 	let bindings = bindgen::Builder::default()
         .header("src/wrapper.h")
         .clang_args(clang_args)
@@ -611,7 +603,6 @@ fn generate_bindings(include_dir: &Path) {
 		.join(env::var("CARGO_CFG_TARGET_OS").unwrap())
 		.join(env::var("CARGO_CFG_TARGET_ARCH").unwrap())
 		.join("bindings.rs");
-	println!("cargo:rerun-if-changed={generated_file:?}");
 	fs::create_dir_all(generated_file.parent().unwrap()).unwrap();
 	bindings.write_to_file(&generated_file).expect("Couldn't write bindings!");
 }
@@ -630,9 +621,6 @@ fn main() {
 		println!("cargo:rustc-link-lib=onnxruntime");
 		println!("cargo:rustc-link-search=native={}", lib_dir.display());
 	}
-
-	println!("cargo:rerun-if-env-changed={}", ORT_ENV_STRATEGY);
-	println!("cargo:rerun-if-env-changed={}", ORT_ENV_SYSTEM_LIB_LOCATION);
 
 	generate_bindings(&include_dir);
 }
