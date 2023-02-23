@@ -417,8 +417,11 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			let target = env::var("TARGET").unwrap();
 			let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-			let python = env::var("PYTHON").unwrap_or_else(|_| "python".to_string());
+			let python = env::var("PYTHON").unwrap_or_else(|_| "python3".to_string());
+			eprintln!("{python}");
+			println!("{python}");
 
+			let git_dir = out_dir.join(ORT_GIT_DIR);
 			Command::new("git")
 				.args([
 					"clone",
@@ -430,13 +433,13 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 					"--shallow-submodules",
 					"--recursive",
 					ORT_GIT_REPO,
-					ORT_GIT_DIR,
+					&git_dir.as_os_str().to_string_lossy(),
 				])
-				.current_dir(&out_dir)
-				.stdout(Stdio::null())
-				.stderr(Stdio::null())
+				.stdout(Stdio::inherit())
+				.stderr(Stdio::inherit())
 				.status()
 				.expect("failed to clone ORT repo");
+			assert!(git_dir.exists());
 
 			let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
 			let _cmake_toolchain = env::var(ORT_ENV_CMAKE_TOOLCHAIN).map_or_else(
@@ -455,10 +458,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			);
 
 			let mut command = Command::new(python);
-			command
-				.current_dir(&out_dir.join(ORT_GIT_DIR))
-				.stdout(Stdio::null())
-				.stderr(Stdio::inherit());
+			command.current_dir(&git_dir).stdout(Stdio::null()).stderr(Stdio::inherit());
 
 			// note: --parallel will probably break something... parallel build *while* doing another parallel build (cargo)?
 			let mut build_args = vec!["tools/ci_build/build.py", "--build", "--update", "--parallel", "--skip_tests", "--skip_submodule_sync"];
