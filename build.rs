@@ -410,7 +410,7 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 					println!("cargo:rustc-link-lib=framework=Foundation");
 				}
 
-				println!("cargo:rustc-link-lib=static=onnxruntime_providers_shared");
+				println!("cargo:rustc-link-lib=onnxruntime_providers_shared");
 				#[cfg(feature = "rocm")]
 				println!("cargo:rustc-link-lib=onnxruntime_providers_rocm");
 
