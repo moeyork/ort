@@ -418,11 +418,9 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
 			let python = env::var("PYTHON").unwrap_or_else(|_| "python3".to_string());
-			eprintln!("{python}");
-			println!("{python}");
 
 			let git_dir = out_dir.join(ORT_GIT_DIR);
-			Command::new("git")
+			let git_ok = Command::new("git")
 				.args([
 					"clone",
 					"--depth",
@@ -438,7 +436,11 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 				.stdout(Stdio::inherit())
 				.stderr(Stdio::inherit())
 				.status()
-				.expect("failed to clone ORT repo");
+				.expect("failed to find git")
+				.code()
+				.unwrap();
+
+			assert_eq!(git_ok, 0);
 			assert!(git_dir.exists());
 
 			let root = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
