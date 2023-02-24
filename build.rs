@@ -310,7 +310,15 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 		incompatible_providers![coreml, vitis_ai, directml, winml];
 	}
 
-	match strategy.as_ref().map_or("compile", String::as_str) {
+	let default_strategy = if cfg!(feature = "use-compile") {
+		"compile"
+	} else if cfg!(feature = "use-system") {
+		"system"
+	} else {
+		"download"
+	};
+
+	match strategy.as_ref().map_or(default_strategy, String::as_str) {
 		"download" => {
 			if target.contains("macos") {
 				incompatible_providers![cuda, onednn, openvino, openmp, vitis_ai, tvm, tensorrt, migraphx, directml, winml, acl, armnn, rocm];
