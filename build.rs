@@ -314,8 +314,12 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 		"compile"
 	} else if cfg!(feature = "use-system") {
 		"system"
-	} else {
+	} else if cfg!(feature = "use-download") {
 		"download"
+	} else if env::var(ORT_ENV_SYSTEM_LIB_LOCATION).is_ok() {
+		"system"
+	} else {
+		"compile"
 	};
 
 	match strategy.as_ref().map_or(default_strategy, String::as_str) {
