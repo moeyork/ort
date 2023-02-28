@@ -290,7 +290,6 @@ fn copy_libraries(lib_dir: &Path, out_dir: &Path) {
 
 fn prepare_libort_dir() -> (PathBuf, bool) {
 	let strategy = env::var(ORT_ENV_STRATEGY);
-	println!("[ort] strategy: {:?}", strategy.as_ref().map(String::as_str).unwrap_or_else(|_| "unknown"));
 
 	let target = env::var("TARGET").unwrap();
 	let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
@@ -321,6 +320,8 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 	} else {
 		"compile"
 	};
+
+	println!("[ort] strategy: {:?}", strategy.as_ref().map(String::as_str).unwrap_or_else(|_| default_strategy));
 
 	match strategy.as_ref().map_or(default_strategy, String::as_str) {
 		"download" => {
@@ -408,7 +409,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 					println!("cargo:rustc-link-lib=framework=Foundation");
 				}
 
-				println!("cargo:rustc-link-lib=onnxruntime_providers_shared");
 				#[cfg(feature = "rocm")]
 				println!("cargo:rustc-link-lib=onnxruntime_providers_rocm");
 
