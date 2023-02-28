@@ -366,8 +366,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 			if lib_dir.join("libonnxruntime_common.a").exists() {
 				println!("cargo:rustc-link-search=native={}", lib_dir.display());
 
-				println!("cargo:rustc-link-lib=stdc++");
-
 				for lib in &["common", "flatbuffers", "framework", "graph", "mlas", "optimizer", "providers", "session", "util"] {
 					let lib_path = lib_dir.join(if cfg!(target_os = "windows") {
 						format!("onnxruntime_{lib}.lib")
