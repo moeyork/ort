@@ -357,10 +357,6 @@ fn prepare_libort_dir() -> (PathBuf, bool) {
 		}
 		"system" => {
 			let lib_dir = PathBuf::from(env::var(ORT_ENV_SYSTEM_LIB_LOCATION).expect("[ort] system strategy requires ORT_LIB_LOCATION env var to be set"));
-			#[cfg(feature = "copy-dylibs")]
-			{
-				copy_libraries(&lib_dir.join("lib"), &PathBuf::from(env::var("OUT_DIR").unwrap()));
-			}
 
 			let mut needs_link = true;
 			if lib_dir.join("libonnxruntime_common.a").exists() {
