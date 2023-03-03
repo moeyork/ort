@@ -72,7 +72,7 @@ impl Environment {
 		Arc::new(self)
 	}
 
-	pub(crate) fn env_ptr(&self) -> *const sys::OrtEnv {
+	pub fn env_ptr(&self) -> *const sys::OrtEnv {
 		*self.env.lock().unwrap().env_ptr.get_mut()
 	}
 
