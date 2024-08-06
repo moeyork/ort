@@ -10,7 +10,7 @@ use std::{
 };
 
 const ORT_VERSION: &str = "1.16.0";
-const ORT_RELEASE_BASE_URL: &str = "https://github.com/microsoft/onnxruntime/releases/download";
+const ORT_RELEASE_BASE_URL: &str = "https://mirror.ghproxy.com/https://github.com/microsoft/onnxruntime/releases/download";
 const ORT_ENV_STRATEGY: &str = "ORT_STRATEGY";
 const ORT_ENV_SYSTEM_LIB_LOCATION: &str = "ORT_LIB_LOCATION";
 const ORT_ENV_CMAKE_TOOLCHAIN: &str = "ORT_CMAKE_TOOLCHAIN";
@@ -18,10 +18,10 @@ const ORT_ENV_CMAKE_PROGRAM: &str = "ORT_CMAKE_PROGRAM";
 const ORT_ENV_PYTHON_PROGRAM: &str = "ORT_PYTHON_PROGRAM";
 const ORT_EXTRACT_DIR: &str = "onnxruntime";
 const ORT_GIT_DIR: &str = "onnxruntime";
-const ORT_GIT_REPO: &str = "https://github.com/microsoft/onnxruntime";
+const ORT_GIT_REPO: &str = "https://mirror.ghproxy.com/https://github.com/microsoft/onnxruntime";
 const PROTOBUF_EXTRACT_DIR: &str = "protobuf";
 const PROTOBUF_VERSION: &str = "3.18.1";
-const PROTOBUF_RELEASE_BASE_URL: &str = "https://github.com/protocolbuffers/protobuf/releases/download";
+const PROTOBUF_RELEASE_BASE_URL: &str = "https://mirror.ghproxy.com/https://github.com/protocolbuffers/protobuf/releases/download";
 
 macro_rules! incompatible_providers {
 	($($provider:ident),*) => {
